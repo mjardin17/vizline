@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}Vigline{% endblock %}</title>
+<style>
+  body { font-family: system-ui, -apple-system, sans-serif; max-width: 1020px; margin: 0 auto; padding: 1rem; color: #1a1a1a; line-height: 1.45; }
+  nav a { margin-right: 1rem; }
+  nav { margin-bottom: .5rem; }
+  .chip { display: inline-block; padding: .12rem .6rem; border-radius: 1rem; font-size: .78rem; background: #eee; margin: .1rem .15rem .1rem 0; }
+  .chip.needs_review, .chip.unknown, .chip.retrieved { background: #fff3cd; }
+  .chip.reviewed, .chip.eligible { background: #d4edda; }
+  .chip.expired, .chip.ineligible, .chip.rejected { background: #f8d7da; }
+  .chip.changed { background: #ffe0b2; }
+  .chip.unavailable, .chip.inapplicable, .chip.pending { background: #e2e3e5; }
+  .chip.issued, .chip.ok { background: #d1ecf1; }
+  table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+  th, td { border: 1px solid #ccc; padding: .35rem .55rem; text-align: left; font-size: .88rem; vertical-align: top; }
+  th { background: #f5f5f5; }
+  .empty { background: #f8f9fa; border: 1px dashed #bbb; padding: 1rem; margin: 1rem 0; }
+  .warn { background: #fff3cd; border: 1px solid #e0c36a; padding: .7rem .9rem; margin: 1rem 0; }
+  .note { color: #555; font-size: .85rem; }
+  form.block { margin: 1rem 0; padding: .8rem; border: 1px solid #ddd; background: #fafafa; }
+  form.inline { display: inline; }
+  input, select, textarea, button { font-size: .9rem; padding: .3rem .5rem; margin: .15rem 0; }
+  label { display: block; margin-top: .4rem; font-size: .88rem; }
+  .money { font-variant-numeric: tabular-nums; white-space: nowrap; }
+  code.hash { font-size: .78rem; }
+</style>
+</head>
+<body>
+<nav>
+  <strong>Vigline</strong>
+  <a href="/">Offers</a>
+  <a href="/wallet">Wallet</a>
+  <a href="/calculator">Calculator</a>
+  <a href="/alerts">Alerts</a>
+</nav>
+<hr>
+{% block content %}{% endblock %}
+<footer><p class="note">Vigline clean-room rebuild (milestone 1: promo command center). No mock data: empty states say what is missing. Estimates are labelled; only settled results count as profit.</p></footer>
+</body>
+</html>

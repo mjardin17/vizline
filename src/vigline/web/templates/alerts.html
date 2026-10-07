@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Vigline — Alerts{% endblock %}
+{% block content %}
+<h1>Alerts</h1>
+
+<div class="warn">
+  <strong>Scheduler:</strong> {{ scheduler_note }}<br>
+  <strong>Status:</strong> not running in this process.
+  <strong>Delivery:</strong> disabled — no destination configured. Alerts are recorded below with
+  <code>delivery_disabled</code>; nothing is sent anywhere.
+</div>
+
+<h2>Jobs (defined, not started)</h2>
+<table>
+  <tr><th>Job</th><th>Schedule</th><th>Next run</th></tr>
+  {% for j in jobs %}
+  <tr><td>{{ j.name }} <span class="note">({{ j.id }})</span></td><td>{{ j.trigger }}</td><td>{{ j.next_run_time or '—' }}</td></tr>
+  {% endfor %}
+</table>
+
+<form class="inline" method="post" action="/alerts/scan/run"><button type="submit">Run scan cycle now</button></form>
+<form class="inline" method="post" action="/alerts/expiry/run"><button type="submit">Run expiry check now</button></form>
+<p class="note">The scan currently reports "no data source configured" (odds/EV engines are milestone 2). The expiry check scans the wallet for rewards expiring soon.</p>
+
+<h2>Alert log ({{ alerts|length }})</h2>
+{% if not alerts %}
+<div class="empty"><strong>No alerts recorded.</strong> Alerts appear here when the scan or expiry worker records one. Duplicates are suppressed; improved opportunities create new rows.</div>
+{% else %}
+<table>
+  <tr><th>ID</th><th>Kind</th><th>Market</th><th>Book</th><th>Side</th><th>Price</th><th>Delivery</th><th>Created</th></tr>
+  {% for a in alerts %}
+  <tr>
+    <td>{{ a.id }}</td>
+    <td>{{ a.kind }}</td>
+    <td>{{ a.market_key }}</td>
+    <td>{{ a.book }}</td>
+    <td>{{ a.side }}</td>
+    <td>{{ a.price_bucket }}</td>
+    <td><span class="chip {{ a.delivery_status }}">{{ a.delivery_status }}</span></td>
+    <td>{{ a.created_at }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% endif %}
+{% endblock %}
