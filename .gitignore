@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+# Virtual environments
+.venv/
+venv/
+# Databases (local dev data; never commit)
+data/*.db
+data/*.db-journal
+# Test / build artefacts
+.pytest_cache/
+.coverage
+dist/
+build/
+# Secrets and local config (never commit real keys or source lists)
+.env
+config/sources.json
+# OS
+.DS_Store
+
+# Source archives (build artefacts)
+*.tar.gz
