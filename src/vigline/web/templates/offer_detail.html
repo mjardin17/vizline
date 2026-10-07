@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Vigline — {{ offer.title }}{% endblock %}
+{% block content %}
+<h1>{{ offer.title }}</h1>
+<p>
+  <span class="chip">{{ offer.platform }}</span>
+  <span class="chip">{{ offer.offer_type }}</span>
+  <span class="chip {{ offer.status }}">{{ offer.status.replace('_', ' ') }}</span>
+  <span class="chip {{ offer.review_state }}">{{ offer.review_state.replace('_', ' ') }}</span>
+  <span class="chip {{ offer.eligibility_state }}">eligibility: {{ offer.eligibility_state.replace('_', ' ') }}</span>
+</p>
+<p class="note">Scope: {{ offer.scope }} · Created {{ offer.created_at }} · Updated {{ offer.updated_at }}</p>
+
+<h2>Terms versions ({{ versions|length }})</h2>
+{% if not versions %}
+<div class="empty"><strong>No terms captured yet.</strong> Import the official terms text below, or configure an authorized source and fetch by URL.</div>
+{% else %}
+<table>
+  <tr><th>v</th><th>SHA-256</th><th>Source</th><th>Fetched at</th><th>By</th><th>Chars</th></tr>
+  {% for v in versions %}
+  <tr>
+    <td>{{ v.version_no }}{% if loop.first %} <span class="chip">current</span>{% endif %}</td>
+    <td><code class="hash">{{ v.text_hash_sha256[:16] }}…</code></td>
+    <td>{{ v.source_url or '—' }}</td>
+    <td>{{ v.fetched_at }}</td>
+    <td>{{ v.fetched_by }}</td>
+    <td>{{ v.text_len }}</td>
+  </tr>
+  {% endfor %}
+</table>
+<p class="note">Versions are immutable: a changed capture creates a new version and flags this offer for re-review. Identical re-captures are ignored (idempotent).</p>
+{% endif %}
+
+<h3>Import terms text</h3>
+<form class="block" method="post" action="/offers/{{ offer.id }}/terms/text">
+  <label>Official terms text (paste verbatim)
+    <textarea name="raw_text" rows="6" cols="80" required></textarea>
+  </label>
+  <label>Source URL (optional) <input name="source_url" size="60"></label>
+  <button type="submit">Capture as new version</button>
+</form>
+
+<h3>Fetch from authorized source</h3>
+{% if authorized_sources %}
+<form class="block" method="post" action="/offers/{{ offer.id }}/terms/fetch">
+  <label>URL
+    <select name="url">
+      {% for u in authorized_sources %}<option value="{{ u }}">{{ u }}</option>{% endfor %}
+    </select>
+  </label>
+  <button type="submit">Fetch &amp; capture</button>
+</form>
+{% else %}
+<div class="empty">Unavailable — no authorized source configured. Add URLs to <code>config/sources.json</code>.</div>
+{% endif %}
+
+<h2>Review &amp; eligibility</h2>
+<form class="inline" method="post" action="/offers/{{ offer.id }}/review">
+  <select name="review_state">
+    <option value="needs_review">needs_review</option>
+    <option value="reviewed">reviewed</option>
+    <option value="retrieved">retrieved</option>
+  </select>
+  <button type="submit">Set review state</button>
+</form>
+<form class="inline" method="post" action="/offers/{{ offer.id }}/eligibility">
+  <select name="state">
+    <option value="unknown">unknown</option>
+    <option value="eligible">eligible</option>
+    <option value="ineligible">ineligible</option>
+    <option value="inapplicable">inapplicable</option>
+  </select>
+  <button type="submit">Set eligibility</button>
+</form>
+
+<h2>Structured eligibility rules</h2>
+{% if rules %}
+<p class="note">Last updated {{ rules.updated_at }} · verified: {{ 'yes' if rules.verified else 'no' }}</p>
+<pre>{{ rules.rules_json }}</pre>
+{% else %}
+<div class="empty"><strong>No structured rules on file.</strong> Eligibility is therefore <em>unknown</em> until rules are recorded and verified against the official terms.</div>
+{% endif %}
+<form class="block" method="post" action="/offers/{{ offer.id }}/rules">
+  <label>Rules JSON (decimal odds as strings, never floats)
+    <textarea name="rules_json" rows="10" cols="80" placeholder='{"jurisdictions": ["NJ"], "min_odds_decimal": "1.50", "hedge_restrictions": "", "qualification_steps": ["opt in", "place $5+ qualifying bet"]}'></textarea>
+  </label>
+  <label><input type="checkbox" name="verified" value="1"> Verified against official terms (only check after human review)</label><br>
+  <button type="submit">Save rules</button>
+</form>
+{% endblock %}

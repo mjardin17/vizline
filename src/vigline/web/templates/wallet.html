@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Vigline — Promo wallet{% endblock %}
+{% block content %}
+<h1>Promo wallet</h1>
+<p class="note">Restricted credits are tracked separately from withdrawable cash. Bonus face value is never counted as cash. Manually entered records are always labelled unverified.</p>
+
+{% if not records %}
+<div class="empty"><strong>Wallet is empty.</strong> Add a reward below when a promotion issues one. Nothing is pre-filled.</div>
+{% else %}
+<table>
+  <tr><th>ID</th><th>Platform</th><th>Reward</th><th>Face value</th><th>Type</th><th>State</th><th>Source</th><th>Expires</th><th>Action</th></tr>
+  {% for r in records %}
+  <tr>
+    <td>{{ r.id }}</td>
+    <td>{{ r.platform }}</td>
+    <td>{{ r.reward_type }}</td>
+    <td class="money">{{ r.face_value_cents|cents }}</td>
+    <td>{{ r.cash_vs_credit.replace('_', ' ') }}</td>
+    <td><span class="chip {{ r.state }}">{{ r.state }}</span></td>
+    <td>{{ r.source.replace('_', ' ') }}</td>
+    <td>{{ r.expires_at or '—' }}</td>
+    <td>
+      <form class="inline" method="post" action="/wallet/{{ r.id }}/transition">
+        <select name="to_state">
+          {% for s in allowed[r.state] %}
+          <option value="{{ s }}">{{ s }}</option>
+          {% endfor %}
+        </select>
+        <button type="submit">Move</button>
+      </form>
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+{% endif %}
+
+<h2>Add reward (manual entry — always unverified)</h2>
+<form class="block" method="post" action="/wallet/new">
+  <label>Platform <input name="platform" required></label>
+  <label>Reward type <input name="reward_type" required placeholder="bonus_bet / free_bet / profit_boost"></label>
+  <label>Face value (cents, integer) <input name="face_value_cents" required pattern="[0-9]+" placeholder="2500"></label>
+  <label>Cash vs credit
+    <select name="cash_vs_credit"><option value="restricted_credit">restricted_credit</option><option value="cash">cash</option></select>
+  </label>
+  <label>Expires at (ISO, optional) <input name="expires_at" placeholder="2026-10-20T23:59:00+00:00"></label>
+  <button type="submit">Add to wallet</button>
+</form>
+{% endblock %}

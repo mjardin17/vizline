@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Vigline — Scenario calculator{% endblock %}
+{% block content %}
+<h1>Promo scenario calculator</h1>
+<p class="note">Pure math on your inputs. Money in cents (integers), decimal odds as exact decimals. No probabilities are assumed; expected value needs your explicit inputs.</p>
+
+<form class="block" method="post" action="/calculator">
+  <label>Bonus face value (cents) <input name="bonus_face_cents" required pattern="[0-9]+" value="{{ form.bonus_face_cents or '10000' }}"></label>
+  <label>Bonus leg decimal odds <input name="bonus_odds" required value="{{ form.bonus_odds or '3.0' }}"></label>
+  <label>Hedge leg decimal odds (cash) <input name="hedge_odds" required value="{{ form.hedge_odds or '2.0' }}"></label>
+  <label>Qualifying stake (cents, 0 if none) <input name="qualifying_stake_cents" pattern="[0-9]+" value="{{ form.qualifying_stake_cents or '0' }}"></label>
+  <label>Qualifying odds <input name="qualifying_odds" value="{{ form.qualifying_odds or '' }}" placeholder="e.g. 2.0"></label>
+  <label>Costs (cents) <input name="costs_cents" pattern="[0-9]+" value="{{ form.costs_cents or '0' }}"></label>
+  <label><input type="checkbox" name="stake_returned" value="1" {% if form.stake_returned %}checked{% endif %}> Bonus stake returned on win</label>
+  <label><input type="checkbox" name="bonus_proceeds_as_cash" value="1" {% if form.bonus_proceeds_as_cash|default(true) %}checked{% endif %}> Bonus win proceeds paid as cash (uncheck if paid as credit)</label>
+  <label><input type="checkbox" name="hedge_allowed" value="1" {% if form.hedge_allowed|default(true) %}checked{% endif %}> Hedging permitted by offer terms</label>
+  <label>Hedge restriction note <input name="hedge_restriction_note" size="60" value="{{ form.hedge_restriction_note or '' }}"></label>
+  <button type="submit">Calculate</button>
+</form>
+
+{% if error %}
+<div class="warn"><strong>Error:</strong> {{ error }}</div>
+{% endif %}
+
+{% if hedge %}
+<h2>Hedge plan</h2>
+{% if hedge.refused %}
+<div class="warn"><strong>Refused:</strong> {{ hedge.reason }}</div>
+{% else %}
+<table>
+  <tr><th>Bonus face</th><th>Bonus odds</th><th>Hedge odds</th><th>Hedge stake</th><th>Locked (before costs)</th><th>Conversion rate</th></tr>
+  <tr>
+    <td class="money">{{ hedge.bonus_face_cents|cents }}</td>
+    <td>{{ hedge.bonus_odds }}</td>
+    <td>{{ hedge.hedge_odds }}</td>
+    <td class="money">{{ hedge.hedge_stake_cents|cents }}</td>
+    <td class="money">{{ hedge.locked_cents|cents }}</td>
+    <td>{{ (hedge.conversion_rate * 100)|round(2) }}%</td>
+  </tr>
+</table>
+{% endif %}
+{% endif %}
+
+{% if rows %}
+<h2>Scenario matrix</h2>
+<p class="note">Peak cash commitment (worst-case path): <strong class="money">{{ peak_cents|cents }}</strong></p>
+<table>
+  <tr><th>Scenario</th><th>Cash out</th><th>Cash in</th><th>Net</th><th>Restricted credit</th><th>State</th><th>Notes</th></tr>
+  {% for r in rows %}
+  <tr>
+    <td>{{ r.label }}</td>
+    <td class="money">{{ r.cash_out_cents|cents }}</td>
+    <td class="money">{{ r.cash_in_cents|cents }}</td>
+    <td class="money">{{ r.net_cents|cents }}</td>
+    <td class="money">{% if r.restricted_credit_cents %}{{ r.restricted_credit_cents|cents }}{% else %}—{% endif %}</td>
+    <td><span class="chip {{ r.state }}">{{ r.state.replace('_', ' ') }}</span></td>
+    <td class="note">{{ r.notes }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% endif %}
+{% endblock %}

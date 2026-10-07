@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Vigline — Promo offers{% endblock %}
+{% block content %}
+<h1>Promo command center</h1>
+
+<div class="warn">
+  <strong>Data status:</strong>
+  {% if authorized_sources %}
+    {{ authorized_sources|length }} authorized terms source(s) configured.
+  {% else %}
+    Unavailable — no authorized source configured. Add official operator URLs to
+    <code>config/sources.json</code> (see <code>config/sources.example.json</code>) or import terms text manually per offer.
+  {% endif %}
+  Odds/EV engines are milestone 2 — no live odds in this build.
+</div>
+
+<h2>Offers ({{ offers|length }})</h2>
+{% if not offers %}
+<div class="empty">
+  <strong>No offers yet.</strong> Add one below to start tracking a promotion.
+  Terms must come from an authorized official source or manual import — nothing here is pre-filled.
+</div>
+{% else %}
+<table>
+  <tr><th>Offer</th><th>Platform</th><th>Type</th><th>Status</th><th>Review</th><th>Eligibility</th><th>Terms versions</th></tr>
+  {% for o in offers %}
+  <tr>
+    <td><a href="/offers/{{ o.id }}">{{ o.title }}</a></td>
+    <td>{{ o.platform }}</td>
+    <td>{{ o.offer_type }}</td>
+    <td><span class="chip {{ o.status }}">{{ o.status.replace('_', ' ') }}</span></td>
+    <td><span class="chip {{ o.review_state }}">{{ o.review_state.replace('_', ' ') }}</span></td>
+    <td><span class="chip {{ o.eligibility_state }}">{{ o.eligibility_state.replace('_', ' ') }}</span></td>
+    <td>{{ o.version_count }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% endif %}
+
+<h2>Add offer</h2>
+<form class="block" method="post" action="/offers/new">
+  <label>Platform <input name="platform" required placeholder="e.g. DraftKings"></label>
+  <label>Title <input name="title" required size="50" placeholder="e.g. Bet $5 get $150 in bonus bets"></label>
+  <label>Offer type <input name="offer_type" required placeholder="bonus_bet / risk_free / odds_boost / deposit_match"></label>
+  <label>Scope
+    <select name="scope"><option value="public">public</option><option value="account_specific">account_specific</option></select>
+  </label>
+  <button type="submit">Add offer</button>
+</form>
+{% endblock %}
